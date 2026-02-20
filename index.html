@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Disiplin Pro | SMK Saujana Impian</title>
+    
+    <!-- Libraries -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --gov-blue: #0f2658;
+            --gov-gold: #c5a059;
+            --light-bg: #f4f7f6;
+            --white: #ffffff;
+            --danger: #d32f2f;
+            --info: #1976d2;
+            --shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
+        body { background-color: var(--light-bg); color: #333; line-height: 1.6; }
+
+        /* --- SKRIN LOG MASUK --- */
+        #login-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--gov-blue) 0%, #1a3a7a 100%);
+        }
+        .login-card {
+            background: var(--white);
+            width: 100%;
+            max-width: 380px;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-top: 6px solid var(--gov-gold);
+            text-align: center;
+        }
+        .login-card img { width: 85px; margin-bottom: 1rem; }
+        .login-card h2 { color: var(--gov-blue); margin-bottom: 1.5rem; font-size: 1.4rem; }
+
+        .form-group { text-align: left; margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: var(--gov-blue); }
+        input, select, textarea { 
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; outline: none;
+        }
+        input:focus { border-color: var(--gov-gold); }
+
+        .btn-main {
+            width: 100%; padding: 12px; background: var(--gov-blue); color: white; border: none;
+            border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+        .btn-main:hover { background: #081636; }
+        .btn-main:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* --- SISTEM UTAMA --- */
+        #main-app { display: none; }
+        header {
+            background: var(--white); padding: 0.8rem 2rem; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 4px solid var(--gov-gold); box-shadow: var(--shadow);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .brand img { height: 55px; }
+        .brand-text h1 { font-size: 1.1rem; color: var(--gov-blue); margin: 0; }
+        .brand-text p { font-size: 0.75rem; color: #666; margin: 0; }
+
+        .container {
+            display: grid; grid-template-columns: 360px 1fr; gap: 20px; padding: 20px;
+            max-width: 1500px; margin: auto;
+        }
+
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: var(--shadow); }
+        .card h3 { color: var(--gov-blue); margin-bottom: 15px; border-bottom: 2px solid var(--light-bg); padding-bottom: 10px; }
+
+        /* --- TABS --- */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 8px 18px; background: #e0e0e0; border-radius: 25px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        .tab.active { background: var(--gov-blue); color: white; }
+
+        /* --- JADUAL --- */
+        .table-res { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6; color: var(--gov-blue); }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+
+        .btn-sm { padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 0.75rem; margin-right: 3px; }
+        .btn-blue { background: var(--info); }
+        .btn-red { background: var(--danger); }
+        .btn-gold { background: var(--gov-gold); color: black; font-weight: bold; }
+
+        .badge-int { background: #e3f2fd; color: #0d47a1; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; display: inline-block; margin-top: 5px; border: 1px solid #bbdefb; }
+
+        /* --- MODAL --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; }
+            header { flex-direction: column; text-align: center; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SECTION: LOGIN -->
+    <div id="login-page">
+        <div class="login-card">
+            <img src="https://i.postimg.cc/SN3YKfvk/smksi.png" alt="Logo">
+            <h2>e-Disiplin Saujana</h2>
+            <div class="form-group"><label>ID Pengguna</label><input type="text" id="user_id" placeholder="Masukkan ID"></div>
+            <div class="form-group"><label>Kata Laluan</label><input type="password" id="user_pass" placeholder="Masukkan Kata Laluan"></div>
+            <button class="btn-main" onclick="processLogin()">MASUK SISTEM</button>
+            <p id="login-error" style="color:red; font-size:0.8rem; margin-top:10px; display:none;">Log masuk gagal! ID atau Kata Laluan salah.</p>
+        </div>
+    </div>
+
+    <!-- SECTION: MAIN APP -->
+    <div id="main-app">
+        <header>
+            <div class="brand">
+                <img src="https://i.postimg.cc/SN3YKfvk/smksi.png" alt="SMKSI">
+                <div class="brand-text">
+                    <h1>SMK SAUJANA IMPIAN</h1>
+                    <p>KM 22, Jalan Cheras. 4300 Kajang. Selangor.</p>
+                </div>
+            </div>
+            <button onclick="location.reload()" style="padding:8px 15px; border:none; background:#eee; cursor:pointer; border-radius:5px;">Log Keluar</button>
+        </header>
+
+        <div class="container">
+            <!-- Sidebar: Borang (Urutan Diubah Mengikut Permintaan) -->
+            <aside>
+                <div class="card">
+                    <h3>Pendaftaran Kesalahan</h3>
+                    <form id="disciplineForm">
+                        <div class="form-group"><label>Tarikh Kejadian</label><input type="date" id="f_date" required></div>
+                        
+                        <div class="form-group"><label>Nama Pelajar (HURUF BESAR)</label><input type="text" id="f_name" oninput="this.value = this.value.toUpperCase()" placeholder="NAMA PENUH" required></div>
+                        
+                        <div class="form-group"><label>Tingkatan</label>
+                            <select id="f_form" required>
+                                <option value="">-- Pilih --</option>
+                                <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group"><label>Kelas</label><select id="f_class" required></select></div>
+                        
+                        <div class="form-group"><label>Jenis Kesalahan</label>
+                            <select id="f_offense" required>
+                                <option value="">-- Pilih --</option>
+                                <option>BIADAP</option><option>GANGSTERISMA</option><option>KEKEMASAN</option><option>LEWAT</option>
+                                <option>MELAKUKAN ZINA</option><option>MEMBAWA BAHAN LUCAH</option><option>MEMBAWA MINUMAN BERALKOHOL</option>
+                                <option>MEMBAWA SENJATA BERBAHAYA</option><option>MEMBAWA TELEFON BIMBIT TANPA KEBENARAN</option>
+                                <option>MEMBULI</option><option>MEMERAS UGUT</option><option>MENCABUL</option><option>MENCURI</option>
+                                <option>MENGAMBIL DADAH</option><option>MENGHIDU GAM</option><option>MENGHISAP ROKOK/VAPE</option>
+                                <option>MENIRU DALAM PEPERIKSAAN</option><option>MEROSAKKAN HARTA BENDA SEKOLAH</option>
+                                <option>PONTENG KELAS</option><option>PONTENG PERHIMPUNAN</option><option>PONTENG SEKOLAH</option>
+                                <option>RAMBUT PANJANG</option><option>TIDAK MEMAKAI LEMCANA</option><option>VANDELISMA</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group"><label>Tindakan Diambil</label>
+                            <select id="f_action" required>
+                                <option value="">-- Pilih --</option>
+                                <option>AMARAN BERTULIS</option><option>AMARAN LISAN</option><option>BUANG SEKOLAH</option>
+                                <option>DENDA RINGAN</option><option>GANTUNG SEKOLAH</option><option>HUKUMAN ROTAN</option>
+                                <option>LAPORAN POLIS</option><option>PERJANJIAN BERKELAKUAN BAIK</option>
+                                <option>RAMPASAN</option><option>SEKATAN KEMUDAHAN</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn-main" id="saveBtn">SIMPAN KE GOOGLE SHEETS</button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Main: Jadual -->
+            <main>
+                <div class="card">
+                    <div class="tabs">
+                        <div class="tab active" onclick="setFilter('today', this)">Hari Ini</div>
+                        <div class="tab" onclick="setFilter('all', this)">Semua Rekod</div>
+                    </div>
+                    <div class="table-res">
+                        <table>
+                            <thead><tr><th>Tarikh</th><th>Murid / Tingkatan / Kelas</th><th>Kesalahan</th><th>Tindakan</th><th>Intervensi</th><th>Pilihan</th></tr></thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL INTERVENSI -->
+    <div class="modal" id="intModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:15px; color:var(--gov-blue)">Log Sesi Intervensi</h3>
+            <div class="form-group"><label>Tarikh Sesi (Tarikh_Intervensi)</label><input type="date" id="int_date"></div>
+            <div class="form-group"><label>Jenis Intervensi</label>
+                <select id="int_type">
+                    <option>KEM MOTIVASI</option><option>KHIDMAT MASYARAKAT</option><option>MENTOR-MENTEE</option>
+                    <option>PERJUMPAAN DENGAN IBU BAPA</option><option>PROGRAM PPS</option>
+                    <option>SESI KAUNSELING INDIVIDU</option><option>SESI KAUNSELING KELOMPOK</option>
+                    <option>SESI PERKONGSIAN MORAL</option><option>UJIAN PSIKOMETRIK</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Catatan Ringkas (Catatan_Intervensi)</label><textarea id="int_note" rows="3"></textarea></div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-main" onclick="submitIntervention()">Simpan Intervensi</button>
+                <button class="btn-main" style="background:#888;" onclick="closeModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyKcuqDgCgmViIBwLPItu7Yt_9qEvAwsJg8tT3Tm6vTQqS8Kr_sisGukoM-TLAQ1GMZ/exec";
+        const LOGO_URL = "https://i.postimg.cc/SN3YKfvk/smksi.png";
+        
+        let recordsData = [];
+        let activeId = null;
+        let logoBase64 = "";
+        let logoRatio = 1;
+
+        // Preload Logo with Correct Aspect Ratio
+        function preloadLogo() {
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; 
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                canvas.width = this.width;
+                canvas.height = this.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(this, 0, 0);
+                logoBase64 = canvas.toDataURL("image/png");
+                logoRatio = this.height / this.width;
+            };
+            img.src = LOGO_URL;
+        }
+
+        // --- AUTH LOGIC (bea4621 / 4621) ---
+        function processLogin() {
+            const id = document.getElementById('user_id').value;
+            const pass = document.getElementById('user_pass').value;
+            if(id === 'bea4621' && pass === '4621') {
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                preloadLogo();
+                initApp();
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+            }
+        }
+
+        function initApp() {
+            const sel = document.getElementById('f_class');
+            const cls = ['ARIF','BESTARI','CEMERLANG','DINAMIK','EFEKTIF','FUTURISTIK','GEMILANG','HIKMAH','INTELEK','JUARA','KALIBER','LUHUR','MADANI','NILAM','OPTIMIS','PROGRESIF','REALISTIK'];
+            let h = '<option value="">-- Pilih --</option>';
+            cls.forEach(k => h += `<option value="${k}">${k}</option>`);
+            sel.innerHTML = h;
+            document.getElementById('f_date').valueAsDate = new Date();
+            loadData();
+        }
+
+        async function loadData() {
+            try {
+                const resp = await fetch(SCRIPT_URL);
+                recordsData = await resp.json();
+                renderTable();
+            } catch (err) { console.error("Recall Error:", err); }
+        }
+
+        function renderTable(filter = 'today') {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            const today = new Date().toISOString().split('T')[0];
+            const filtered = recordsData.filter(r => filter === 'all' ? true : r.Tarikh === today);
+            
+            filtered.sort((a,b) => b.ID - a.ID).forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${r.Tarikh}</td><td><strong>${r.Nama}</strong><br><small>Ting. ${r.Tingkatan} ${r.Kelas}</small></td><td>${r.Kesalahan}</td><td>${r.Tindakan}</td><td>${r.Intervensi === 'TIADA' ? 'TIADA' : `<span class="badge-int">${r.Intervensi}</span>`}</td>
+                    <td><button class="btn-sm btn-gold" onclick="openModal('${r.ID}')">Int.</button>
+                    <button class="btn-sm btn-blue" onclick="generatePDF('${r.ID}', 'laporan')">Lp.</button>
+                    <button class="btn-sm btn-red" onclick="generatePDF('${r.ID}', 'surat')">St.</button></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setFilter(t, el) {
+            document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+            el.classList.add('active'); renderTable(t);
+        }
+
+        document.getElementById('disciplineForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn'); btn.disabled = true; btn.innerText = "MENYIMPAN...";
+            const p = { 
+                action: "add", 
+                id: Date.now(), 
+                date: document.getElementById('f_date').value, 
+                name: document.getElementById('f_name').value, 
+                form: document.getElementById('f_form').value,
+                class: document.getElementById('f_class').value, 
+                offense: document.getElementById('f_offense').value, 
+                action_taken: document.getElementById('f_action').value 
+            };
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(p) });
+                document.getElementById('disciplineForm').reset(); 
+                document.getElementById('f_date').valueAsDate = new Date();
+                loadData(); 
+            } finally {
+                btn.disabled = false; btn.innerText = "SIMPAN KE GOOGLE SHEETS";
+            }
+        };
+
+        function openModal(id) { activeId = id; document.getElementById('intModal').style.display = 'flex'; document.getElementById('int_date').valueAsDate = new Date(); }
+        function closeModal() { document.getElementById('intModal').style.display = 'none'; }
+        
+        async function submitIntervention() {
+            const p = { action: "updateIntervention", id: activeId, intervText: `[${document.getElementById('int_type').value} - ${document.getElementById('int_date').value}]`, intervDate: document.getElementById('int_date').value, intervNote: document.getElementById('int_note').value };
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(p) });
+            closeModal(); loadData();
+        }
+
+        // --- PDF GENERATOR (With Drive Integration) ---
+        async function generatePDF(id, type) {
+            const r = recordsData.find(x => x.ID == id);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            if (logoBase64) {
+                const imgWidth = 25;
+                const imgHeight = imgWidth * logoRatio;
+                doc.addImage(logoBase64, 'PNG', 15, 10, imgWidth, imgHeight);
+            }
+
+            doc.setFontSize(14); doc.setTextColor(15, 38, 88); doc.text("SMK SAUJANA IMPIAN", 45, 18);
+            doc.setFontSize(9); doc.setTextColor(100); doc.text("KM 22, Jalan Cheras. 4300 Kajang. Selangor.", 45, 24);
+            doc.line(15, 35, 195, 35);
+
+            if(type === 'laporan') {
+                doc.setFontSize(12); doc.setTextColor(0); doc.text("LAPORAN DISIPLIN MURID", 105, 45, {align: 'center'});
+                doc.autoTable({
+                    startY: 52,
+                    head: [['Kategori', 'Butiran']],
+                    body: [['Nama Murid', r.Nama],['Tingkatan/Kelas', `${r.Tingkatan} ${r.Kelas}`],['Tarikh Kejadian', r.Tarikh],['Kesalahan', r.Kesalahan],['Tindakan', r.Tindakan],['Intervensi', r.Intervensi]],
+                    theme: 'grid', headStyles: { fillColor: [15, 38, 88] }
+                });
+            } else {
+                doc.setFontSize(11); doc.setTextColor(0); doc.text("SURAT PEMBERITAHUAN DISIPLIN", 20, 50);
+                const msg = `Tarikh: ${new Date().toLocaleDateString()}\n\nTuan/Puan,\n\nMAKLUMAN TINDAKAN DISIPLIN: ${r.Nama} (Tingkatan ${r.Tingkatan} ${r.Kelas})\n\nDimaklumkan bahawa murid tersebut telah melakukan kesalahan: ${r.Kesalahan}.\nPihak sekolah telah mengambil tindakan: ${r.Tindakan}.\n\nSekian, terima kasih.`;
+                doc.setFontSize(10); doc.text(msg, 20, 60, { maxWidth: 170 });
+            }
+
+            doc.setFontSize(8); doc.setTextColor(150); doc.text("Dokumen digital e-Disiplin Pro. Tiada tandatangan diperlukan.", 105, 285, {align: 'center'});
+            
+            // Download to Device
+            doc.save(`${type}_${r.Nama}.pdf`);
+
+            // Silent Upload to Google Drive
+            const pdfArrayBuffer = doc.output('arraybuffer');
+            const base64String = btoa(new Uint8Array(pdfArrayBuffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+            const payload = { action: "uploadPDF", type: type, filename: `${type.toUpperCase()}_${r.Nama}_${r.ID}.pdf`, base64: base64String };
+            try { await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }); } catch (err) { console.error("Drive error:", err); }
+        }
+    </script>
+</body>
+</html>
